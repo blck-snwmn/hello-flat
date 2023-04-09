@@ -1,12 +1,15 @@
-# Prepare
+# hello-flat
+A sample of flat buffers using Go.
+
+## Prepare
 Install flatc.
 
-# Generate
+## Generate
 ```bash
 flatc --go schema/user.fbs
 ```
 
-# Run
+## Run
 ```bash
 go run main.go
 ```
