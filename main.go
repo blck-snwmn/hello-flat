@@ -13,7 +13,7 @@ func main() {
 	builder.Finish(u)
 	buf := builder.FinishedBytes()
 
-	fmt.Printf("%X\n", buf)
+	fmt.Printf("length=%d, msg=`%X`\n", len(buf), buf)
 
 	user := sample.GetRootAsUser(buf, 0)
 
