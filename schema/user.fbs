@@ -1,0 +1,17 @@
+namespace mygame.sample;
+
+enum Color:byte { Red = 0, Green, Blue = 2 }
+
+struct Position {
+  x: float;
+  y: float;
+  z: float;
+}
+
+table User {
+  name: string;
+  pos: Position; // Struct.
+  color: Color = Blue; // Enum.
+}
+
+root_type User;
