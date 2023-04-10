@@ -34,6 +34,15 @@ position{x, y, z} = {11, 12, 13}
 item[0]:name=sword
 item[1]:name=shield
 item[2]:name=armor
+=====
+proto
+length=57, msg=`0A084A6F686E20446F65120F0D0000304115000040411D00005041180A22070A0573776F726422080A06736869656C6422070A0561726D6F72`
+name=`John Doe`
+color=10
+position{x, y, z} = {11, 12, 13}
+item[0]:name=sword
+item[1]:name=shield
+item[2]:name=armor
 ```
 
 ## Bench

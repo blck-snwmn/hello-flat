@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 
+	psample "github.com/blck-snwmn/hello-flat/gen/buf/schema/proto/v1"
 	"github.com/blck-snwmn/hello-flat/mygame/sample"
 	flatbuffers "github.com/google/flatbuffers/go"
+	"google.golang.org/protobuf/proto"
 )
 
 func main() {
@@ -12,6 +14,8 @@ func main() {
 	normal()
 	fmt.Println("=====\npack")
 	usePack()
+	fmt.Println("=====\nproto")
+	doproto()
 }
 
 func usePack() {
@@ -69,6 +73,32 @@ func normal() {
 		var item sample.Item
 		user.Inventory(&item, i)
 		fmt.Printf("item[%d]:name=%s\n", i, item.Name())
+	}
+}
+
+func doproto() {
+	u := psample.User{
+		Name:  "John Doe",
+		Pos:   &psample.Position{X: float32(11), Y: float32(12), Z: float32(13)},
+		Color: psample.Color(10),
+		Inventory: []*psample.Item{
+			{Name: "sword"},
+			{Name: "shield"},
+			{Name: "armor"},
+		},
+	}
+	buf, _ := proto.Marshal(&u)
+	fmt.Printf("length=%d, msg=`%X`\n", len(buf), buf)
+
+	var uu psample.User
+	proto.Unmarshal(buf, &uu)
+
+	fmt.Printf("name=`%s`\n", uu.Name)
+	fmt.Printf("color=%v\n", uu.Color)
+	fmt.Printf("position{x, y, z} = {%v, %v, %v}\n", uu.Pos.X, uu.Pos.Y, uu.Pos.Z)
+
+	for i, item := range uu.Inventory {
+		fmt.Printf("item[%d]:name=%s\n", i, item.Name)
 	}
 }
 
