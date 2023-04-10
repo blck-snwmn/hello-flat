@@ -1,0 +1,5 @@
+version: v1
+plugins:
+  - name: go
+    out: gen/buf
+    opt: paths=source_relative

@@ -3,7 +3,9 @@ package main
 import (
 	"testing"
 
+	psample "github.com/blck-snwmn/hello-flat/gen/buf/schema/proto/v1"
 	"github.com/blck-snwmn/hello-flat/mygame/sample"
+	"github.com/golang/protobuf/proto"
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
@@ -90,5 +92,24 @@ func BenchmarkCreateWithUserT(b *testing.B) {
 
 		_ = sample.GetRootAsUser(buf, 0)
 		// ut := uu.UnPack()
+	}
+}
+
+func BenchmarkProto(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		u := psample.User{
+			Name:  "John Doe",
+			Pos:   &psample.Position{X: float32(11), Y: float32(12), Z: float32(13)},
+			Color: *psample.Color_COLOR_BLUE.Enum(),
+			Inventory: []*psample.Item{
+				{Name: "sword"},
+				{Name: "shield"},
+				{Name: "armor"},
+			},
+		}
+		buf, _ := proto.Marshal(&u)
+
+		var uu psample.User
+		proto.Unmarshal(buf, &uu)
 	}
 }

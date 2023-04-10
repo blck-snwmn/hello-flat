@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package schema.proto.v1;
+
+option go_package = "gen/grpc/psample";
+
+enum Color {
+  COLOR_UNSPECIFIED = 0;
+  COLOR_RED = 1;
+  COLOR_GREEN = 2;
+  COLOR_BLUE = 3;
+}
+
+message Position {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+}
+
+message User {
+  string name = 1;
+  Position pos = 2;
+  Color color = 3;
+  repeated Item inventory = 4;
+}
+
+message Item {
+  string name = 1;
+  Position pos = 2;
+}
