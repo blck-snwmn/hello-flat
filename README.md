@@ -6,7 +6,7 @@ Install flatc.
 
 ## Generate
 ```bash
-flatc --go --gen-object-api schema/user.fbs
+flatc --go --gen-object-api schema/fbs/user.fbs
 ```
 
 ## Run
