@@ -5,8 +5,8 @@ import (
 
 	psample "github.com/blck-snwmn/hello-flat/gen/buf/schema/proto/v1"
 	"github.com/blck-snwmn/hello-flat/mygame/sample"
+	"github.com/golang/protobuf/proto"
 	flatbuffers "github.com/google/flatbuffers/go"
-	"google.golang.org/protobuf/proto"
 )
 
 func main() {
