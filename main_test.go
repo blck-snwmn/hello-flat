@@ -36,9 +36,10 @@ func BenchmarkCreate(b *testing.B) {
 		}
 
 		sample.UserStartInventoryVector(builder, count)
-		for _, item := range items {
-			builder.PrependUOffsetT(item)
-		}
+		builder.PrependUOffsetT(items[2])
+		builder.PrependUOffsetT(items[1])
+		builder.PrependUOffsetT(items[0])
+
 		inv := builder.EndVector(count)
 
 		name := builder.CreateString("John Doe")
@@ -46,15 +47,23 @@ func BenchmarkCreate(b *testing.B) {
 		sample.UserAddName(builder, name)
 		sample.UserAddInventory(builder, inv)
 
-		pos := sample.CreatePosition(builder, 11, 12, 13)
-		sample.UserAddPos(builder, pos)
+		p := sample.CreatePosition(builder, 11, 12, 13)
+		sample.UserAddPos(builder, p)
 		sample.UserAddColor(builder, sample.Color(10))
 
 		u := sample.UserEnd(builder)
 		builder.Finish(u)
 		buf := builder.FinishedBytes()
 
-		_ = sample.GetRootAsUser(buf, 0)
+		user := sample.GetRootAsUser(buf, 0)
+
+		var pos sample.Position
+		user.Pos(&pos)
+
+		for i := 0; i < user.InventoryLength(); i++ {
+			var item sample.Item
+			user.Inventory(&item, i)
+		}
 	}
 }
 
@@ -65,7 +74,15 @@ func BenchmarkCreateWithFunc(b *testing.B) {
 		builder.Finish(u)
 		buf := builder.FinishedBytes()
 
-		_ = sample.GetRootAsUser(buf, 0)
+		user := sample.GetRootAsUser(buf, 0)
+
+		var pos sample.Position
+		user.Pos(&pos)
+
+		for i := 0; i < user.InventoryLength(); i++ {
+			var item sample.Item
+			user.Inventory(&item, i)
+		}
 	}
 }
 
@@ -79,7 +96,7 @@ func BenchmarkCreateWithUserT(b *testing.B) {
 				Y: 12,
 				Z: 13,
 			},
-			Color: 0,
+			Color: sample.Color(10),
 			Inventory: []*sample.ItemT{
 				{Name: "sword"},
 				{Name: "shield"},
@@ -90,8 +107,8 @@ func BenchmarkCreateWithUserT(b *testing.B) {
 		builder.Finish(u.Pack(builder))
 		buf := builder.FinishedBytes()
 
-		_ = sample.GetRootAsUser(buf, 0)
-		// ut := uu.UnPack()
+		uu := sample.GetRootAsUser(buf, 0)
+		_ = uu.UnPack() // heavy
 	}
 }
 
@@ -100,7 +117,7 @@ func BenchmarkProto(b *testing.B) {
 		u := psample.User{
 			Name:  "John Doe",
 			Pos:   &psample.Position{X: float32(11), Y: float32(12), Z: float32(13)},
-			Color: *psample.Color_COLOR_BLUE.Enum(),
+			Color: psample.Color(10),
 			Inventory: []*psample.Item{
 				{Name: "sword"},
 				{Name: "shield"},
