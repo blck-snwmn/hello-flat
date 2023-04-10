@@ -6,6 +6,61 @@ import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
+type UserT struct {
+	Name string `json:"name"`
+	Pos *PositionT `json:"pos"`
+	Color Color `json:"color"`
+	Inventory []*ItemT `json:"inventory"`
+}
+
+func (t *UserT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	nameOffset := flatbuffers.UOffsetT(0)
+	if t.Name != "" {
+		nameOffset = builder.CreateString(t.Name)
+	}
+	inventoryOffset := flatbuffers.UOffsetT(0)
+	if t.Inventory != nil {
+		inventoryLength := len(t.Inventory)
+		inventoryOffsets := make([]flatbuffers.UOffsetT, inventoryLength)
+		for j := 0; j < inventoryLength; j++ {
+			inventoryOffsets[j] = t.Inventory[j].Pack(builder)
+		}
+		UserStartInventoryVector(builder, inventoryLength)
+		for j := inventoryLength - 1; j >= 0; j-- {
+			builder.PrependUOffsetT(inventoryOffsets[j])
+		}
+		inventoryOffset = builder.EndVector(inventoryLength)
+	}
+	UserStart(builder)
+	UserAddName(builder, nameOffset)
+	posOffset := t.Pos.Pack(builder)
+	UserAddPos(builder, posOffset)
+	UserAddColor(builder, t.Color)
+	UserAddInventory(builder, inventoryOffset)
+	return UserEnd(builder)
+}
+
+func (rcv *User) UnPackTo(t *UserT) {
+	t.Name = string(rcv.Name())
+	t.Pos = rcv.Pos(nil).UnPack()
+	t.Color = rcv.Color()
+	inventoryLength := rcv.InventoryLength()
+	t.Inventory = make([]*ItemT, inventoryLength)
+	for j := 0; j < inventoryLength; j++ {
+		x := Item{}
+		rcv.Inventory(&x, j)
+		t.Inventory[j] = x.UnPack()
+	}
+}
+
+func (rcv *User) UnPack() *UserT {
+	if rcv == nil { return nil }
+	t := &UserT{}
+	rcv.UnPackTo(t)
+	return t
+}
+
 type User struct {
 	_tab flatbuffers.Table
 }

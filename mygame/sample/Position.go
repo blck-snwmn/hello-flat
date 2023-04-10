@@ -6,6 +6,29 @@ import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
+type PositionT struct {
+	X float32 `json:"x"`
+	Y float32 `json:"y"`
+	Z float32 `json:"z"`
+}
+
+func (t *PositionT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	return CreatePosition(builder, t.X, t.Y, t.Z)
+}
+func (rcv *Position) UnPackTo(t *PositionT) {
+	t.X = rcv.X()
+	t.Y = rcv.Y()
+	t.Z = rcv.Z()
+}
+
+func (rcv *Position) UnPack() *PositionT {
+	if rcv == nil { return nil }
+	t := &PositionT{}
+	rcv.UnPackTo(t)
+	return t
+}
+
 type Position struct {
 	_tab flatbuffers.Struct
 }
