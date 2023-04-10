@@ -8,6 +8,47 @@ import (
 )
 
 func main() {
+	fmt.Println("=====\nno pack")
+	normal()
+	fmt.Println("=====\npack")
+	usePack()
+}
+
+func usePack() {
+	builder := flatbuffers.NewBuilder(1024)
+	u := sample.UserT{
+		Name: "John Doe",
+		Pos: &sample.PositionT{
+			X: 11,
+			Y: 12,
+			Z: 13,
+		},
+		Color: sample.Color(10),
+		Inventory: []*sample.ItemT{
+			{Name: "sword"},
+			{Name: "shield"},
+			{Name: "armor"},
+		},
+	}
+
+	builder.Finish(u.Pack(builder))
+	buf := builder.FinishedBytes()
+
+	fmt.Printf("length=%d, msg=`%X`\n", len(buf), buf)
+
+	uu := sample.GetRootAsUser(buf, 0)
+	user := uu.UnPack()
+
+	fmt.Printf("name=`%s`\n", user.Name)
+	fmt.Printf("color=%v\n", user.Color)
+	fmt.Printf("position{x, y, z} = {%v, %v, %v}\n", user.Pos.X, user.Pos.Y, user.Pos.Z)
+
+	for i, item := range user.Inventory {
+		fmt.Printf("item[%d]:name=%s\n", i, item.Name)
+	}
+}
+
+func normal() {
 	builder := flatbuffers.NewBuilder(1024)
 	u := createUser(builder)
 	builder.Finish(u)
@@ -22,12 +63,12 @@ func main() {
 
 	fmt.Printf("name=`%s`\n", user.Name())
 	fmt.Printf("color=%v\n", user.Color())
-	fmt.Printf("{x, y, z} = {%v, %v, %v}\n", pos.X(), pos.Y(), pos.Z())
+	fmt.Printf("position{x, y, z} = {%v, %v, %v}\n", pos.X(), pos.Y(), pos.Z())
 
 	for i := 0; i < user.InventoryLength(); i++ {
 		var item sample.Item
 		user.Inventory(&item, i)
-		fmt.Printf("[%d]:name=%s\n", i, item.Name())
+		fmt.Printf("item[%d]:name=%s\n", i, item.Name())
 	}
 }
 
