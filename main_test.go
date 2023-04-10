@@ -15,7 +15,7 @@ func BenchmarkCreate(b *testing.B) {
 		const count = 3
 
 		// Generate the content in advance, as nesting is not possible
-		items := make([]flatbuffers.UOffsetT, count)
+		items := make([]flatbuffers.UOffsetT, 0, count)
 		{
 			item := builder.CreateString("sword")
 			sample.ItemStart(builder)

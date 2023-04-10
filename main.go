@@ -98,7 +98,7 @@ func createInv(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	const count = 3
 
 	// Generate the content in advance, as nesting is not possible
-	items := make([]flatbuffers.UOffsetT, count)
+	items := make([]flatbuffers.UOffsetT, 0, count)
 	items = append(items, createItem(builder, "sword"))
 	items = append(items, createItem(builder, "shield"))
 	items = append(items, createItem(builder, "armor"))
