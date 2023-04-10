@@ -104,8 +104,8 @@ func createInv(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	items = append(items, createItem(builder, "armor"))
 
 	sample.UserStartInventoryVector(builder, count)
-	for _, item := range items {
-		builder.PrependUOffsetT(item)
-	}
+	builder.PrependUOffsetT(items[2])
+	builder.PrependUOffsetT(items[1])
+	builder.PrependUOffsetT(items[0])
 	return builder.EndVector(count)
 }
