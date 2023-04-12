@@ -12,6 +12,8 @@ import (
 func main() {
 	fmt.Println("=====\nno pack")
 	normal()
+	fmt.Println("=====\nno pack with length")
+	normalWithLength()
 	fmt.Println("=====\npack")
 	usePack()
 	fmt.Println("=====\nproto")
@@ -61,6 +63,29 @@ func normal() {
 	fmt.Printf("length=%d, msg=`%X`\n", len(buf), buf)
 
 	user := sample.GetRootAsUser(buf, 0)
+
+	var pos sample.Position
+	user.Pos(&pos)
+
+	fmt.Printf("name=`%s`\n", user.Name())
+	fmt.Printf("color=%v\n", user.Color())
+	fmt.Printf("position{x, y, z} = {%v, %v, %v}\n", pos.X(), pos.Y(), pos.Z())
+
+	for i := 0; i < user.InventoryLength(); i++ {
+		var item sample.Item
+		user.Inventory(&item, i)
+		fmt.Printf("item[%d]:name=%s\n", i, item.Name())
+	}
+}
+func normalWithLength() {
+	builder := flatbuffers.NewBuilder(1024)
+	u := createUser(builder)
+	builder.FinishSizePrefixed(u)
+	buf := builder.FinishedBytes()
+
+	fmt.Printf("length=%d, msg=`%X`\n", len(buf), buf)
+
+	user := sample.GetSizePrefixedRootAsUser(buf, 0)
 
 	var pos sample.Position
 	user.Pos(&pos)
