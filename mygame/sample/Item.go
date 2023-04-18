@@ -8,6 +8,7 @@ import (
 
 type ItemT struct {
 	Name string `json:"name"`
+	Color Color `json:"color"`
 }
 
 func (t *ItemT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -18,11 +19,13 @@ func (t *ItemT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	}
 	ItemStart(builder)
 	ItemAddName(builder, nameOffset)
+	ItemAddColor(builder, t.Color)
 	return ItemEnd(builder)
 }
 
 func (rcv *Item) UnPackTo(t *ItemT) {
 	t.Name = string(rcv.Name())
+	t.Color = rcv.Color()
 }
 
 func (rcv *Item) UnPack() *ItemT {
@@ -67,11 +70,26 @@ func (rcv *Item) Name() []byte {
 	return nil
 }
 
+func (rcv *Item) Color() Color {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
+	if o != 0 {
+		return Color(rcv._tab.GetInt8(o + rcv._tab.Pos))
+	}
+	return 2
+}
+
+func (rcv *Item) MutateColor(n Color) bool {
+	return rcv._tab.MutateInt8Slot(6, int8(n))
+}
+
 func ItemStart(builder *flatbuffers.Builder) {
-	builder.StartObject(1)
+	builder.StartObject(2)
 }
 func ItemAddName(builder *flatbuffers.Builder, name flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(name), 0)
+}
+func ItemAddColor(builder *flatbuffers.Builder, color Color) {
+	builder.PrependInt8Slot(1, int8(color), 2)
 }
 func ItemEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
