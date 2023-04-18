@@ -1,0 +1,19 @@
+name: Generate FlatBuffers code
+
+on:
+    pull_request:
+        paths:
+            - '**.fbs'
+env:
+    VERSION: v23.3.3
+jobs:
+  generate_code:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download and extract FlatBuffers compiler
+        run: |
+          wget https://github.com/google/flatbuffers/releases/download/${{ env.VERSION }}/Linux.flatc.binary.clang++-12.zip
+          unzip Linux.flatc.binary.clang++-12.zip
+      - name: Generate code
+        run: ./flatc --go --gen-object-api schema/fbs/user.fbs
