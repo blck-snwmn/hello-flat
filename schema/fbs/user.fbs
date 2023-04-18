@@ -17,6 +17,7 @@ table User {
 
 table Item {
   name: string;
+  color: Color = Blue;
 }
 
 root_type User;
