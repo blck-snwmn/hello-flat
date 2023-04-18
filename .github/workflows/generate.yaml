@@ -2,8 +2,7 @@ name: Generate FlatBuffers code
 
 on:
     pull_request:
-        paths:
-            - '**.fbs'
+
 env:
     VERSION: v23.3.3
 jobs:
