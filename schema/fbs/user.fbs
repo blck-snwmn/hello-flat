@@ -15,8 +15,21 @@ table User {
   inventory: [Item];  // Vector of tables.
 }
 
+table Posion {
+  name: string;
+  effect_type: string;
+}
+
+table Drink {
+  name: string;
+  taste: string;
+}
+
+union ItemContent {Posion, Drink}
+
 table Item {
   name: string;
+  content: ItemContent;
 }
 
 root_type User;

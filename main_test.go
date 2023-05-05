@@ -11,27 +11,54 @@ import (
 
 func BenchmarkCreate(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		builder := flatbuffers.NewBuilder(1024)
+		builder := flatbuffers.NewBuilder(2024)
 		const count = 3
 
 		// Generate the content in advance, as nesting is not possible
 		items := make([]flatbuffers.UOffsetT, 0, count)
 		{
-			item := builder.CreateString("sword")
+			posionStr := builder.CreateString("healing")
+			typ := builder.CreateString("heal")
+			sample.PosionStart(builder)
+			sample.PosionAddName(builder, posionStr)
+			sample.PosionAddEffectType(builder, typ)
+			posion := sample.PosionEnd(builder)
+
+			item := builder.CreateString("posion")
 			sample.ItemStart(builder)
 			sample.ItemAddName(builder, item)
+			sample.ItemAddContentType(builder, sample.ItemContentPosion)
+			sample.ItemAddContent(builder, posion)
 			items = append(items, sample.ItemEnd(builder))
 		}
 		{
+			posionStr := builder.CreateString("damage")
+			typ := builder.CreateString("heal")
+			sample.PosionStart(builder)
+			sample.PosionAddName(builder, posionStr)
+			sample.PosionAddEffectType(builder, typ)
+			posion := sample.PosionEnd(builder)
+
 			item := builder.CreateString("shield")
 			sample.ItemStart(builder)
 			sample.ItemAddName(builder, item)
+			sample.ItemAddContentType(builder, sample.ItemContentPosion)
+			sample.ItemAddContent(builder, posion)
 			items = append(items, sample.ItemEnd(builder))
 		}
 		{
+			name := builder.CreateString("apple juice")
+			taste := builder.CreateString("sweet")
+			sample.DrinkStart(builder)
+			sample.DrinkAddName(builder, name)
+			sample.DrinkAddTaste(builder, taste)
+			drink := sample.DrinkEnd(builder)
+
 			item := builder.CreateString("armor")
 			sample.ItemStart(builder)
 			sample.ItemAddName(builder, item)
+			sample.ItemAddContentType(builder, sample.ItemContentDrink)
+			sample.ItemAddContent(builder, drink)
 			items = append(items, sample.ItemEnd(builder))
 		}
 
@@ -63,6 +90,18 @@ func BenchmarkCreate(b *testing.B) {
 		for i := 0; i < user.InventoryLength(); i++ {
 			var item sample.Item
 			user.Inventory(&item, i)
+
+			// unionTable := new(flatbuffers.Table)
+			// item.Content(unionTable)
+
+			// contentType := item.ContentType()
+			// switch contentType {
+			// case sample.ItemContentPosion:
+
+			// 	posion := new(sample.Posion)
+			// 	posion.Init(unionTable.Bytes, unionTable.Pos)
+			// }
+
 		}
 	}
 }
@@ -109,6 +148,70 @@ func BenchmarkCreateWithUserT(b *testing.B) {
 
 		uu := sample.GetRootAsUser(buf, 0)
 		_ = uu.UnPack() // heavy
+	}
+}
+
+func BenchmarkCreateHybrid(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		builder := flatbuffers.NewBuilder(1024)
+		u := sample.UserT{
+			Name: "John Doe",
+			Pos: &sample.PositionT{
+				X: 11,
+				Y: 12,
+				Z: 13,
+			},
+			Color: sample.Color(10),
+			Inventory: []*sample.ItemT{
+				{Name: "healing posion", Content: &sample.ItemContentT{
+					Type: sample.ItemContentPosion,
+					Value: &sample.PosionT{
+						Name:       "healing",
+						EffectType: "heal",
+					},
+				}},
+				{Name: "damage posion", Content: &sample.ItemContentT{
+					Type: sample.ItemContentPosion,
+					Value: &sample.PosionT{
+						Name:       "dagame",
+						EffectType: "bob",
+					},
+				}},
+				{Name: "juice", Content: &sample.ItemContentT{
+					Type: sample.ItemContentDrink,
+					Value: &sample.DrinkT{
+						Name:  "juice",
+						Taste: "sweet",
+					},
+				}},
+			},
+		}
+
+		builder.Finish(u.Pack(builder))
+		buf := builder.FinishedBytes()
+
+		user := sample.GetRootAsUser(buf, 0)
+
+		var pos sample.Position
+		user.Pos(&pos)
+
+		for i := 0; i < user.InventoryLength(); i++ {
+			var item sample.Item
+			user.Inventory(&item, i)
+
+			unionTable := new(flatbuffers.Table)
+			item.Content(unionTable)
+
+			contentType := item.ContentType()
+			switch contentType {
+			case sample.ItemContentPosion:
+				posion := new(sample.Posion)
+				posion.Init(unionTable.Bytes, unionTable.Pos)
+			case sample.ItemContentDrink:
+				drink := new(sample.Drink)
+				drink.Init(unionTable.Bytes, unionTable.Pos)
+			}
+		}
 	}
 }
 
