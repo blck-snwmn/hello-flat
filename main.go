@@ -16,6 +16,8 @@ func main() {
 	normalWithLength()
 	fmt.Println("=====\npack")
 	usePack()
+	fmt.Println("=====\nhybrid")
+	hybrid()
 	fmt.Println("=====\nproto")
 	doproto()
 }
@@ -77,6 +79,79 @@ func normal() {
 		fmt.Printf("item[%d]:name=%s\n", i, item.Name())
 	}
 }
+
+func hybrid() {
+	builder := flatbuffers.NewBuilder(1024)
+	u := sample.UserT{
+		Name: "John Doe",
+		Pos: &sample.PositionT{
+			X: 11,
+			Y: 12,
+			Z: 13,
+		},
+		Color: sample.Color(10),
+		Inventory: []*sample.ItemT{
+			{Name: "healing posion", Content: &sample.ItemContentT{
+				Type: sample.ItemContentPosion,
+				Value: &sample.PosionT{
+					Name:       "healing",
+					EffectType: "heal",
+				},
+			}},
+			{Name: "damage posion", Content: &sample.ItemContentT{
+				Type: sample.ItemContentPosion,
+				Value: &sample.PosionT{
+					Name:       "dagame",
+					EffectType: "bob",
+				},
+			}},
+			{Name: "juice", Content: &sample.ItemContentT{
+				Type: sample.ItemContentDrink,
+				Value: &sample.DrinkT{
+					Name:  "juice",
+					Taste: "sweet",
+				},
+			}},
+		},
+	}
+
+	builder.Finish(u.Pack(builder))
+	buf := builder.FinishedBytes()
+
+	fmt.Printf("length=%d, msg=`%X`\n", len(buf), buf)
+
+	user := sample.GetRootAsUser(buf, 0)
+
+	var pos sample.Position
+	user.Pos(&pos)
+
+	fmt.Printf("name=`%s`\n", user.Name())
+	fmt.Printf("color=%v\n", user.Color())
+	fmt.Printf("position{x, y, z} = {%v, %v, %v}\n", pos.X(), pos.Y(), pos.Z())
+
+	for i := 0; i < user.InventoryLength(); i++ {
+		var item sample.Item
+		user.Inventory(&item, i)
+
+		unionTable := new(flatbuffers.Table)
+		item.Content(unionTable)
+
+		contentType := item.ContentType()
+		switch contentType {
+		case sample.ItemContentPosion:
+			posion := new(sample.Posion)
+			posion.Init(unionTable.Bytes, unionTable.Pos)
+			fmt.Printf("item[%d]:name=%s, effect_type=%s\n", i, item.Name(), posion.EffectType())
+		case sample.ItemContentDrink:
+			drink := new(sample.Drink)
+			drink.Init(unionTable.Bytes, unionTable.Pos)
+			fmt.Printf("item[%d]:name=%s, taste=%s\n", i, item.Name(), drink.Taste())
+		default:
+			fmt.Printf("unknown content type: %v\n", contentType)
+		}
+	}
+}
+
 func normalWithLength() {
 	builder := flatbuffers.NewBuilder(1024)
 	u := createUser(builder)

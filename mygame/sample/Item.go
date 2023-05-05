@@ -8,6 +8,7 @@ import (
 
 type ItemT struct {
 	Name string `json:"name"`
+	Content *ItemContentT `json:"content"`
 }
 
 func (t *ItemT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
@@ -16,13 +17,23 @@ func (t *ItemT) Pack(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	if t.Name != "" {
 		nameOffset = builder.CreateString(t.Name)
 	}
+	contentOffset := t.Content.Pack(builder)
+	
 	ItemStart(builder)
 	ItemAddName(builder, nameOffset)
+	if t.Content != nil {
+		ItemAddContentType(builder, t.Content.Type)
+	}
+	ItemAddContent(builder, contentOffset)
 	return ItemEnd(builder)
 }
 
 func (rcv *Item) UnPackTo(t *ItemT) {
 	t.Name = string(rcv.Name())
+	contentTable := flatbuffers.Table{}
+	if rcv.Content(&contentTable) {
+		t.Content = rcv.ContentType().UnPack(contentTable)
+	}
 }
 
 func (rcv *Item) UnPack() *ItemT {
@@ -67,11 +78,38 @@ func (rcv *Item) Name() []byte {
 	return nil
 }
 
+func (rcv *Item) ContentType() ItemContent {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
+	if o != 0 {
+		return ItemContent(rcv._tab.GetByte(o + rcv._tab.Pos))
+	}
+	return 0
+}
+
+func (rcv *Item) MutateContentType(n ItemContent) bool {
+	return rcv._tab.MutateByteSlot(6, byte(n))
+}
+
+func (rcv *Item) Content(obj *flatbuffers.Table) bool {
+	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
+	if o != 0 {
+		rcv._tab.Union(obj, o)
+		return true
+	}
+	return false
+}
+
 func ItemStart(builder *flatbuffers.Builder) {
-	builder.StartObject(1)
+	builder.StartObject(3)
 }
 func ItemAddName(builder *flatbuffers.Builder, name flatbuffers.UOffsetT) {
 	builder.PrependUOffsetTSlot(0, flatbuffers.UOffsetT(name), 0)
+}
+func ItemAddContentType(builder *flatbuffers.Builder, contentType ItemContent) {
+	builder.PrependByteSlot(1, byte(contentType), 0)
+}
+func ItemAddContent(builder *flatbuffers.Builder, content flatbuffers.UOffsetT) {
+	builder.PrependUOffsetTSlot(2, flatbuffers.UOffsetT(content), 0)
 }
 func ItemEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
