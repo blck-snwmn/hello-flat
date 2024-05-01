@@ -5,5 +5,5 @@ go 1.20
 require (
 	github.com/golang/protobuf v1.5.4
 	github.com/google/flatbuffers v24.3.25+incompatible
-	google.golang.org/protobuf v1.33.0
+	google.golang.org/protobuf v1.34.0
 )
